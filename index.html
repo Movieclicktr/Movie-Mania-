@@ -1,289 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Mania</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(to right, #0f0c29, #302b63, #24243e);
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sierra Fire Watch</title>
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css' rel='stylesheet' />
+<style>
+  /* Basic reset */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; }
 
-        header {
-            text-align: center;
-            padding: 20px;
-            background: #1b1b1b;
-            width: 100%;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
+  /* Navigation bar styles */
+  .navbar { background: #333; color: #fff; padding: 10px 20px; text-align: center; }
 
-        h1 {
-            margin: 0;
-            font-size: 3em;
-            color: #ffffff;
-            text-shadow: 2px 2px #000;
-        }
+  /* Map and image slider styles */
+  #map { height: 300px; }
+  .image-slider { max-width: 100%; overflow: hidden; position: relative; }
+  .image-slider img { width: 100%; display: block; transition: transform 0.5s ease; }
+  .slider-buttons { position: absolute; top: 50%; transform: translateY(-50%); width: 100%; display: flex; justify-content: space-between; }
+  .slider-button { background: rgba(0,0,0,0.5); color: #fff; border: none; padding: 10px; cursor: pointer; }
 
-        .search-bar {
-            width: 100%;
-            padding: 20px 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+  /* Fire information styles */
+  .fire-info { padding: 20px; background: #f8f8f8; }
 
-        .search-bar input {
-            width: 50%;
-            padding: 15px;
-            border: 2px solid #5a5a5a;
-            border-radius: 50px;
-            font-size: 1.2em;
-            outline: none;
-            text-align: center;
-            background: transparent;
-            color: #fff;
-            margin-right: 10px;
-        }
-
-        .search-bar select {
-            padding: 15px;
-            border: 2px solid #5a5a5a;
-            border-radius: 50px;
-            font-size: 1.2em;
-            outline: none;
-            background: transparent;
-            color: #fff;
-            margin-right: 10px;
-        }
-
-        .movie-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 20px;
-            flex: 1;
-        }
-
-        .movie-card {
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 10px;
-            margin: 20px;
-            padding: 10px;
-            width: 220px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-        }
-
-        .movie-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-        }
-
-        .movie-card img {
-            width: 100%;
-            border-radius: 10px;
-        }
-
-        .movie-info {
-            padding: 10px 0;
-            text-align: center;
-        }
-
-        .movie-info h2 {
-            font-size: 1.2em;
-            color: #b3b3b3;
-        }
-
-        .movie-info p {
-            font-size: 0.9em;
-            color: #ddd;
-        }
-
-        .movie-info button {
-            padding: 10px 20px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 50px;
-            background-color: #5a5a5a;
-            color: #ffffff;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .movie-info button:hover {
-            background-color: #777777;
-        }
-
-        .trailer-container {
-            display: none;
-            position: fixed; /* Make it fixed positioned */
-            top: 50%; /* Center vertically */
-            left: 50%; /* Center horizontally */
-            transform: translate(-50%, -50%); /* Use transform to offset from center */
-            width: 80%;
-            max-width: 800px;
-            background-color: rgba(0, 0, 0, 0.9);
-            border-radius: 10px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            z-index: 1000;
-        }
-
-        .trailer-container iframe {
-            width: 100%;
-            height: 450px;
-        }
-
-        .trailer-close {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            font-size: 1.5em;
-            cursor: pointer;
-            color: #ffffff;
-        }
-    </style>
+  /* Responsive design */
+  @media (max-width: 768px) {
+    #map { height: 200px; }
+  }
+</style>
 </head>
 <body>
-    <header>
-        <h1>Movie Mania</h1>
-    </header>
-    <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search for movies or series..." autocomplete="off">
-        <select id="mediaType">
-            <option value="movie">Movie</option>
-            <option value="tv">Series</option>
-        </select>
-    </div>
-    <section class="movie-list" id="movieList">
-        <!-- Movie or series cards will be dynamically inserted here -->
-    </section>
-    <div class="trailer-container" id="trailerContainer">
-        <span class="trailer" id="trailerClose">&times;</span>
-        <iframe id="trailerFrame" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-    </div>
-    <script>
-        const YOUTUBE_API_KEY = 'AIzaSyBXOa3QUlaN-PhEY-XWVb2x8Hlu1wMitqI';
-        const TMDB_API_KEY = 'e7c559e53fd4bea9f5249ea97e394123';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const searchInput = document.getElementById('searchInput');
-            const mediaTypeSelect = document.getElementById('mediaType');
+<div class="navbar">
+  <h1>Sierra Fire Watch</h1>
+</div>
 
-            searchInput.addEventListener('input', debounce(handleSearch, 500));
-            mediaTypeSelect.addEventListener('change', handleSearch);
+<div class="image-slider" id="imageSlider">
+  <img src="https://images-resized.watchduty.org/uploads/2024/6/30/1719787054881-5120.jpg" alt="Fire Image">
+  <!-- Add more images here -->
+  <div class="slider-buttons">
+    <button class="slider-button" onclick="slide(-1)">❮</button>
+    <button class="slider-button" onclick="slide(1)">❯</button>
+  </div>
+</div>
 
-            document.getElementById('trailerClose').addEventListener('click', closeTrailer);
+<div id='map'></div>
 
-            fetchRandomMoviesOrSeries();
+<div class="fire-info">
+  <h2>Sierra Fire</h2>
+  <p><strong>Location:</strong> 11000 Block of Sierra Avenue, Fontana, San Bernardino County, CA</p>
+  <p><strong>Acres:</strong> 50</p>
+  <p><strong>Containment:</strong> 0%</p>
+  <p><strong>Status:</strong> Active</p>
+  <p><strong>Last Updated:</strong> 22 minutes ago</p>
+  <p><strong>Reported by:</strong> Jonathan Pineda • Staff Reporter</p>
+  <!-- Add additional updates here -->
+</div>
 
-            async function fetchMedia(query, type) {
-                const searchType = type === 'tv' ? 'tv' : 'movie';
-                try {
-                    const response = await fetch(`https://api.themoviedb.org/3/search/${searchType}?api_key=${TMDB_API_KEY}&query=${query}`);
-                    const data = await response.json();
-                    displayMedia(data.results, searchType);
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Failed to fetch data. Please try again.');
-                }
-            }
+<script src='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js'></script>
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoibGV2aWR1a2UiLCJhIjoiY2x4aTZyMjRlMWp4ODJrb3RoaXA5YzEybCJ9.mOYaBOZ502CzwHElpqWi-g';
+  var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/satellite-v9',
+    center: [-117.2518, 34.0398],
+    zoom: 11
+  });
 
-            async function fetchRandomMoviesOrSeries() {
-                const searchType = mediaTypeSelect.value === 'tv' ? 'tv' : 'movie';
-                try {
-                    const randomPage = Math.floor(Math.random() * 500) + 1;
-                    const response = await fetch(`https://api.themoviedb.org/3/${searchType}/popular?api_key=${TMDB_API_KEY}&page=${randomPage}`);
-                    const data = await response.json();
-                    displayMedia(data.results.slice(0, 5), searchType);
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Failed to fetch data. Please try again.');
-                }
-            }
+  // Add a marker to the map
+  new mapboxgl.Marker()
+    .setLngLat([-117.2518, 34.0398])
+    .addTo(map);
 
-            function displayMedia(mediaItems, type) {
-                const movieList = document.getElementById('movieList');
-                movieList.innerHTML = '';
+  // Image slider functionality
+  var slideIndex = 0;
+  function slide(direction) {
+    var images = document.getElementById('imageSlider').getElementsByTagName('img');
+    slideIndex = (slideIndex + direction + images.length) % images.length;
+    for (var i = 0; i < images.length; i++) {
+      images[i].style.transform = 'translateX(' + (-slideIndex * 100) + '%)';
+    }
+  }
+</script>
 
-                mediaItems.forEach(item => {
-                    const mediaCard = document.createElement('div');
-                    mediaCard.className = 'movie-card';
-                    const posterPath = item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : 'placeholder.jpg';
-                    mediaCard.innerHTML = `
-                        <img src="${posterPath}" alt="${item.title || item.name}" onclick="fetchTrailer('${item.title || item.name}', '${type}')">
-                        <div class="movie-info">
-                            <h2>${item.title || item.name}</h2>
-                            <p>${item.overview || 'No description available.'}</p>
-                            <button onclick="fetchTrailer('${item.title || item.name}', '${type}')">Watch Trailer</button>
-                        </div>
-                    `;
-                    movieList.appendChild(mediaCard);
-                });
-            }
-
-            async function fetchTrailer(title, type) {
-                try {
-                    const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(title)} ${type === 'tv' ? 'series' : 'movie'} trailer&type=video&key=${YOUTUBE_API_KEY}`);
-                    const data = await response.json();
-                    if (data.items && data.items.length > 0) {
-                        const videoId = data.items[0].id.videoId;
-                        openTrailer(videoId);
-                    } else {
-                        alert('Trailer not found!');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Failed to fetch trailer. Please try again.');
-                }
-            }
-
-            function openTrailer(videoId) {
-                const trailerContainer = document.getElementById('trailerContainer');
-                const trailerFrame = document.getElementById('trailerFrame');
-                trailerFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&modestbranding=1&rel=0`;
-                trailerContainer.style.display = 'block';
-            }
-
-function closeTrailer() {
-                const trailerContainer = document.getElementById('trailerContainer');
-                const trailerFrame = document.getElementById('trailerFrame');
-                trailerFrame.src = '';
-                trailerContainer.style.display = 'none';
- }
-
-            function handleSearch() {
-                const query = searchInput.value.trim();
-                const type = mediaTypeSelect.value;
-                if (query.length > 2) {
-                    fetchMedia(query, type);
-                } else {
-                    fetchRandomMoviesOrSeries();
-                }
-            }
-
-            function debounce(func, wait) {
-                let timeout;
-                return function() {
-                    const context = this, args = arguments;
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => func.apply(context, args), wait);
-                };
-            }
-
-            // Expose fetchTrailer to the global scope
-            window.fetchTrailer = fetchTrailer;
-        });
-    </script>
 </body>
 </html>
